@@ -57,4 +57,4 @@ t_doc2 = remove_stopwords_spacy(t_doc2)
 remove_empty(t_doc1)
 
 
-
+print(t_doc1)
