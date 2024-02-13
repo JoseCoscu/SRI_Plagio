@@ -1,40 +1,38 @@
 import spacy
 import nltk
 import gensim
+import os
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 def_path = "../../data/"
 
 
-def fix_doc(doc):
-    f_doc = []
-    for i in doc:
-        f_doc.append(i[0])
-    return f_doc
+def load_docs(path):
+    docs = []
 
+    # Obtener la lista de archivos en la carpeta
+    archivos = os.listdir(def_path)
 
-def load_doc(name):
-    # Abre el archivo en modo lectura ('r')
-    with open(def_path + name, 'r') as archivo:
-        # Lee el contenido del archivo
-        doc = archivo.read()
+    # Iterar sobre cada archivo en la carpeta
+    for archivo in archivos:
 
-    # Imprime el contenido del archivo
-    return doc
+        if archivo.endswith('.txt') or archivo.endswith('.pdf'):
+            # Construir la ruta completa al archivo
+            ruta_completa = os.path.join(def_path, archivo)
+
+            # Realizar operaciones con el archivo, por ejemplo, cargarlo
+            with open(ruta_completa, 'r') as f:
+                contenido = f.read()
+
+            # Agregar el contenido del archivo a la lista
+            docs.append(contenido)
+
+    return docs
 
 
 def tokenization_spacy(texts):
     return [[token for token in nlp(doc)] for doc in texts]
-
-
-def remove_empty(words):
-    while True:
-        try:
-            # print('re')
-            words.remove([])
-        except:
-            break
-
-    return words
 
 
 def remove_noise_spacy(tokenized_docs):
@@ -48,9 +46,26 @@ def remove_stopwords_spacy(tokenized_docs):
     ]
 
 
-def morphological_reduction_spacy(doc, use_lemmatization=True):
+def morphological_reduction_spacy(tokenized_docs, use_lemmatization=True):
     stemmer = nltk.stem.PorterStemmer()
-    return [token.lemma_ if use_lemmatization else stemmer.stem(token.text) for token in doc]
+    return [
+        [token.lemma_ if use_lemmatization else stemmer.stem(token.text) for token in doc]
+        for doc in tokenized_docs
+    ]
+
+
+def filter_tokens_by_occurrence(tokenized_docs, no_below=2, no_above=10):
+    global dictionary
+    dictionary = gensim.corpora.Dictionary(tokenized_docs)
+    dictionary.filter_extremes(no_below, no_above)
+
+    filtered_words = [word for _, word in dictionary.iteritems()]
+    filtered_tokens = [
+        [word for word in doc if word in filtered_words]
+        for doc in tokenized_docs
+    ]
+
+    return filtered_tokens
 
 
 def build_vocabulary(dictionary):
@@ -58,33 +73,50 @@ def build_vocabulary(dictionary):
     return vocabulary
 
 
-doc1 = load_doc("naturaleza.txt").split()
-doc2 = load_doc("naturaleza_plagio.txt").split()
+def vector_representation(tokenized_docs, dictionary, use_bow=False):
+    corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
+
+    if use_bow:
+        vector_repr = corpus
+    else:
+        tfidf = gensim.models.TfidfModel(corpus)
+        vector_repr = [tfidf[doc] for doc in corpus]
+
+    return vector_repr
+
+
+def v_similarity(v1, v2):
+    len_diff = len(v2) - len(v1)
+    if len_diff > 0:
+        v1.extend([0] * len_diff)
+    elif len_diff < 0:
+        v2.extend([0] * abs(len_diff))
+
+    # Calcula la similitud de coseno entre los dos vectores
+    similarity = cosine_similarity([v1], [v2])
+    return similarity[0][0]
+
+
+def extracting_vectors(v_repr):
+    vectors = [[x[1] for x in docs] for docs in v_repr]
+    return vectors
+
 
 nlp = spacy.load("es_core_news_sm")
+docs = load_docs(def_path)
+tokenized_docs = tokenization_spacy(docs)
+tokenized_docs = remove_noise_spacy(tokenized_docs)
+tokenized_docs = remove_stopwords_spacy(tokenized_docs)
+tokenized_docs = morphological_reduction_spacy(tokenized_docs)
 
-t_doc1 = tokenization_spacy(doc1)
-t_doc2 = tokenization_spacy(doc2)
+filtered_docs = filter_tokens_by_occurrence(tokenized_docs)
 
-t_doc1 = remove_noise_spacy(t_doc1)
-t_doc2 = remove_noise_spacy(t_doc2)
+vocabulary = build_vocabulary(dictionary)
 
-t_doc1 = remove_stopwords_spacy(t_doc1)
-t_doc2 = remove_stopwords_spacy(t_doc2)
+vector_repr = vector_representation(tokenized_docs, dictionary)
 
-remove_empty(t_doc1)
-remove_empty(t_doc2)
-
-t_doc1 = fix_doc(t_doc1)
-t_doc2 = fix_doc(t_doc2)
-
-t_doc1 = morphological_reduction_spacy(t_doc1, True)
-t_doc1 = tokenization_spacy(t_doc1)
-t_doc1 = remove_stopwords_spacy(t_doc1)
-remove_empty(t_doc1)
-t_doc1 = fix_doc(t_doc1)
-
-v = build_vocabulary(t_doc1)
+vs = extracting_vectors(vector_repr)
 
 
-print(v)
+s = v_similarity(vs[2],vs[3])
+print(s)
