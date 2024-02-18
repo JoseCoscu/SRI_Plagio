@@ -17,9 +17,9 @@ def compare_docs(vcts):
     if (v_sim >= 0.8):
         messagebox.showwarning(f"Warning", f"Plagarism Detecteddd!!!\n{"{:.2f}".format(v_sim * 100)}% Precision")
         conmon_ngrams = pc.find_similar_ngrams(docs[index1], docs[index2])
-        v.cargar_archivo(texto_izquierda, conmon_ngrams, docs[index2])
-        time.sleep(2)
-        v.cargar_archivo(texto_derecha, conmon_ngrams, docs[index1])
+        v.cargar_archivo(texto_izquierda, conmon_ngrams, docs[index1])
+      #  time.sleep(2)
+        v.cargar_archivo(texto_derecha, conmon_ngrams, docs[index2])
 
 
     else:
@@ -65,6 +65,7 @@ texto_derecha.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
 
 # Definir una etiqueta para resaltar el texto
 texto_izquierda.tag_configure("resaltado", background="yellow")
+texto_derecha.tag_configure("resaltado", background="yellow")
 
 # Botones para cargar archivos en la parte inferior y centrada del frame izquierdo
 boton_izquierda = tk.Button(frame_izquierda, text="Load File",
@@ -74,7 +75,7 @@ boton_izquierda.pack(side=tk.BOTTOM)
 
 # Botones para cargar archivos en la parte inferior y centrada del frame derecho
 boton_derecha = tk.Button(frame_derecha, text="Load File",
-                          command=lambda: v.cargar_archivo(texto_derecha, "texto a resaltar"))
+                          command=lambda: v.cargar_archivo(texto_derecha, ""))
 boton_derecha.pack(side=tk.BOTTOM)
 
 # Crear un botón en el centro del frame principal
