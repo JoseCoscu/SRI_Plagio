@@ -3,35 +3,62 @@ import nltk
 import gensim
 import os
 from sklearn.metrics.pairwise import cosine_similarity
+from nltk.util import ngrams
 import numpy as np
 
-def_path = "../../data/"
+def_path = os.path
 
 
-def load_docs(path):
+def get_ngrams(text, n):
+    # Divide el texto en tokens
+    tokens = text.split()
+
+    # Genera los n-gramas
+    ngrams_list = list(ngrams(tokens, n))
+
+    return [' '.join(gram) for gram in ngrams_list]
+
+
+def find_similar_ngrams(document1, document2, n=10):
+    # Obtiene los n-gramas de ambos documentos
+    ngrams_doc1 = get_ngrams(document1, n)
+    ngrams_doc2 = get_ngrams(document2, n)
+
+    set1 = set(ngrams_doc1)
+    set2 = set(ngrams_doc2)
+
+    # Encuentra los n-gramas comunes
+    common_ngrams = set1 & set2
+
+    return common_ngrams
+
+
+def load_docs(lower):
     docs = []
-
+    path = os.getcwd()
+    path = os.path.join(path, 'data')
     # Obtener la lista de archivos en la carpeta
-    archivos = os.listdir(def_path)
+    archivos = os.listdir(path)
 
     # Iterar sobre cada archivo en la carpeta
     for archivo in archivos:
 
         if archivo.endswith('.txt') or archivo.endswith('.pdf'):
             # Construir la ruta completa al archivo
-            ruta_completa = os.path.join(def_path, archivo)
+            ruta_completa = os.path.join(path, archivo)
 
             # Realizar operaciones con el archivo, por ejemplo, cargarlo
-            with open(ruta_completa, 'r') as f:
+            with open(ruta_completa, 'r', encoding='utf-8') as f:
                 contenido = f.read()
 
             # Agregar el contenido del archivo a la lista
-            docs.append(contenido)
+            docs.append(contenido.lower() if lower else contenido)
 
     return docs
 
 
 def tokenization_spacy(texts):
+    nlp = spacy.load("es_core_news_sm")
     return [[token for token in nlp(doc)] for doc in texts]
 
 
@@ -55,7 +82,6 @@ def morphological_reduction_spacy(tokenized_docs, use_lemmatization=True):
 
 
 def filter_tokens_by_occurrence(tokenized_docs, no_below=2, no_above=10):
-    global dictionary
     dictionary = gensim.corpora.Dictionary(tokenized_docs)
     dictionary.filter_extremes(no_below, no_above)
 
@@ -65,7 +91,7 @@ def filter_tokens_by_occurrence(tokenized_docs, no_below=2, no_above=10):
         for doc in tokenized_docs
     ]
 
-    return filtered_tokens
+    return filtered_tokens, dictionary
 
 
 def build_vocabulary(dictionary):
@@ -102,21 +128,15 @@ def extracting_vectors(v_repr):
     return vectors
 
 
-nlp = spacy.load("es_core_news_sm")
-docs = load_docs(def_path)
-tokenized_docs = tokenization_spacy(docs)
-tokenized_docs = remove_noise_spacy(tokenized_docs)
-tokenized_docs = remove_stopwords_spacy(tokenized_docs)
-tokenized_docs = morphological_reduction_spacy(tokenized_docs)
+def find_differing_indices(vector1, vector2, alpha):
+    differing_indices = []
 
-filtered_docs = filter_tokens_by_occurrence(tokenized_docs)
+    # Iterar sobre las componentes de los vectores y comparar sus valores
+    for i, (value1, value2) in enumerate(zip(vector1, vector2)):
+        dif = abs(value1 - value2)
+        if dif <= alpha:
+            differing_indices.append(i)
 
-vocabulary = build_vocabulary(dictionary)
-
-vector_repr = vector_representation(tokenized_docs, dictionary)
-
-vs = extracting_vectors(vector_repr)
+    return differing_indices
 
 
-s = v_similarity(vs[2],vs[3])
-print(s)
