@@ -2,7 +2,7 @@ from code2 import doc_loader as dl, plagio_checker as pc
 from gui import view as v
 import tkinter as tk
 from tkinter import messagebox
-import time
+import threading
 
 
 def compare_docs(vcts):
@@ -14,16 +14,15 @@ def compare_docs(vcts):
     index1, index2, docs = get_doc_index(contenido_izquierda, contenido_derecha)
     v_sim = dl.v_similarity(vcts[index1], vcts[index2])
 
-    if (v_sim >= 0.8):
+    if (v_sim >= 0.5):
         messagebox.showwarning(f"Warning", f"Plagarism Detecteddd!!!\n{"{:.2f}".format(v_sim * 100)}% Precision")
         conmon_ngrams = pc.find_similar_ngrams(docs[index1], docs[index2])
         v.cargar_archivo(texto_izquierda, conmon_ngrams, docs[index1])
-      #  time.sleep(2)
         v.cargar_archivo(texto_derecha, conmon_ngrams, docs[index2])
 
 
     else:
-        messagebox.showwarning("Warning", "Nothig detected!")
+        messagebox.showwarning("Warning", f"Nothig detected!\n{"{:.2f}".format(v_sim * 100)}% Precision")
 
 
 def get_doc_index(doc1, doc2):
@@ -41,7 +40,14 @@ def get_doc_index(doc1, doc2):
     return index1, index2, docs
 
 
-vcts = pc.process_docs()
+def process_docs_async():
+    global vcts
+    vcts = pc.process_docs()
+
+
+# Iniciar el proceso en un hilo
+thread = threading.Thread(target=process_docs_async)
+thread.start()
 
 ventana = v.create_window()
 
@@ -69,7 +75,7 @@ texto_derecha.tag_configure("resaltado", background="yellow")
 
 # Botones para cargar archivos en la parte inferior y centrada del frame izquierdo
 boton_izquierda = tk.Button(frame_izquierda, text="Load File",
-                            command=lambda: v.cargar_archivo(texto_izquierda,''))
+                            command=lambda: v.cargar_archivo(texto_izquierda, ''))
 
 boton_izquierda.pack(side=tk.BOTTOM)
 
@@ -86,6 +92,8 @@ boton_central.pack(side=tk.BOTTOM, pady=10)
 
 boton_cerrar = tk.Button(frame_principal, text="Cerrar Ventana", command=ventana.destroy)
 boton_cerrar.pack()
+
+thread.join()
 
 # Ejecutar la aplicación
 ventana.mainloop()

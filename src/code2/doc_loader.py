@@ -5,6 +5,10 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.util import ngrams
 import numpy as np
+from nltk.tokenize import word_tokenize
+from gensim.models import Word2Vec
+
+import numpy as np
 
 def_path = os.path
 
@@ -33,10 +37,10 @@ def find_similar_ngrams(document1, document2, n=10):
     return common_ngrams
 
 
-def load_docs(lower):
+def load_docs(path, lower):
     docs = []
-    path = os.getcwd()
-    path = os.path.join(path, 'data')
+    # path = os.getcwd()
+    # path = os.path.join(path, 'data')
     # Obtener la lista de archivos en la carpeta
     archivos = os.listdir(path)
 
@@ -99,7 +103,7 @@ def build_vocabulary(dictionary):
     return vocabulary
 
 
-def vector_representation(tokenized_docs, dictionary, use_bow=False):
+def vector_representation(tokenized_docs, dictionary, use_bow=True):
     corpus = [dictionary.doc2bow(doc) for doc in tokenized_docs]
 
     if use_bow:
@@ -140,3 +144,36 @@ def find_differing_indices(vector1, vector2, alpha):
     return differing_indices
 
 
+def get_doc_embedding(doc_tokens, model):
+    doc_embedding = []
+    for token in doc_tokens:
+        if token in model.wv:
+            doc_embedding.append(model.wv[token])
+    if not doc_embedding:
+        # Si no hay embeddings para el documento, retorna un vector de ceros
+        return [0] * model.vector_size
+    # Promediar los embeddings de las palabras para obtener el embedding del documento
+    return sum(doc_embedding) / len(doc_embedding)
+
+
+docs = load_docs("E:/PycharmProjects/SRI_Plagio/data", True)
+tokenized_docs1 = tokenization_spacy(docs)
+tokenized_docs = remove_noise_spacy(tokenized_docs1)
+tokenized_docs = remove_stopwords_spacy(tokenized_docs)
+
+tokenized_docs = [[token.text for token in t_docs] for t_docs in tokenized_docs]
+
+
+# tokenized_docs = morphological_reduction_spacy(tokenized_docs)
+
+# filtered_docs, dictionary = filter_tokens_by_occurrence(tokenized_docs)
+
+# vector_repr = vector_representation(tokenized_docs, dictionary)
+
+# vs = extracting_vectors(vector_repr)
+
+# tokenized_docs3 = [word_tokenize(doc.lower()) for doc in docs]
+model = Word2Vec(tokenized_docs, vector_size=100, window=5, min_count=1, sg=0)
+embeddings = [get_doc_embedding(doc, model) for doc in tokenized_docs]
+v = v_similarity(embeddings[0] , embeddings[5])
+print(v)
