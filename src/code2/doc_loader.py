@@ -4,11 +4,7 @@ import gensim
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 from nltk.util import ngrams
-import numpy as np
-from nltk.tokenize import word_tokenize
 from gensim.models import Word2Vec
-
-import numpy as np
 
 def_path = os.path
 
@@ -132,18 +128,6 @@ def extracting_vectors(v_repr):
     return vectors
 
 
-def find_differing_indices(vector1, vector2, alpha):
-    differing_indices = []
-
-    # Iterar sobre las componentes de los vectores y comparar sus valores
-    for i, (value1, value2) in enumerate(zip(vector1, vector2)):
-        dif = abs(value1 - value2)
-        if dif <= alpha:
-            differing_indices.append(i)
-
-    return differing_indices
-
-
 def get_doc_embedding(doc_tokens, model):
     doc_embedding = []
     for token in doc_tokens:
@@ -154,16 +138,3 @@ def get_doc_embedding(doc_tokens, model):
         return [0] * model.vector_size
     # Promediar los embeddings de las palabras para obtener el embedding del documento
     return sum(doc_embedding) / len(doc_embedding)
-
-
-# docs = load_docs("E:/PycharmProjects/SRI_Plagio/data", True)  # Arreglar pathh!!!!!
-# tokenized_docs1 = tokenization_spacy(docs)
-# tokenized_docs = remove_noise_spacy(tokenized_docs1)
-# tokenized_docs = remove_stopwords_spacy(tokenized_docs)
-#
-# tokenized_docs = [[token.text for token in t_docs] for t_docs in tokenized_docs]
-#
-# model = Word2Vec(tokenized_docs, vector_size=100, window=5, min_count=1, sg=0)
-# embeddings = [get_doc_embedding(doc, model) for doc in tokenized_docs]
-# v = v_similarity(embeddings[0], embeddings[5])
-# print(v)
