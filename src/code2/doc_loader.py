@@ -37,10 +37,10 @@ def find_similar_ngrams(document1, document2, n=10):
     return common_ngrams
 
 
-def load_docs(path, lower):
+def load_docs(lower):
     docs = []
-    # path = os.getcwd()
-    # path = os.path.join(path, 'data')
+    path = os.getcwd()
+    path = os.path.join(path, 'data')
     # Obtener la lista de archivos en la carpeta
     archivos = os.listdir(path)
 
@@ -156,24 +156,14 @@ def get_doc_embedding(doc_tokens, model):
     return sum(doc_embedding) / len(doc_embedding)
 
 
-docs = load_docs("E:/PycharmProjects/SRI_Plagio/data", True)
-tokenized_docs1 = tokenization_spacy(docs)
-tokenized_docs = remove_noise_spacy(tokenized_docs1)
-tokenized_docs = remove_stopwords_spacy(tokenized_docs)
-
-tokenized_docs = [[token.text for token in t_docs] for t_docs in tokenized_docs]
-
-
-# tokenized_docs = morphological_reduction_spacy(tokenized_docs)
-
-# filtered_docs, dictionary = filter_tokens_by_occurrence(tokenized_docs)
-
-# vector_repr = vector_representation(tokenized_docs, dictionary)
-
-# vs = extracting_vectors(vector_repr)
-
-# tokenized_docs3 = [word_tokenize(doc.lower()) for doc in docs]
-model = Word2Vec(tokenized_docs, vector_size=100, window=5, min_count=1, sg=0)
-embeddings = [get_doc_embedding(doc, model) for doc in tokenized_docs]
-v = v_similarity(embeddings[0] , embeddings[5])
-print(v)
+# docs = load_docs("E:/PycharmProjects/SRI_Plagio/data", True)  # Arreglar pathh!!!!!
+# tokenized_docs1 = tokenization_spacy(docs)
+# tokenized_docs = remove_noise_spacy(tokenized_docs1)
+# tokenized_docs = remove_stopwords_spacy(tokenized_docs)
+#
+# tokenized_docs = [[token.text for token in t_docs] for t_docs in tokenized_docs]
+#
+# model = Word2Vec(tokenized_docs, vector_size=100, window=5, min_count=1, sg=0)
+# embeddings = [get_doc_embedding(doc, model) for doc in tokenized_docs]
+# v = v_similarity(embeddings[0], embeddings[5])
+# print(v)

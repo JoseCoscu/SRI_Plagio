@@ -86,7 +86,6 @@ boton_derecha.pack(side=tk.BOTTOM)
 
 # Crear un botón en el centro del frame principal
 boton_central = tk.Button(frame_principal, text="Verify", command=lambda: compare_docs(vcts))
-from tkinter import filedialog
 
 boton_central.pack(side=tk.BOTTOM, pady=10)
 
