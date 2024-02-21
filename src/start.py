@@ -14,7 +14,7 @@ def compare_docs(vcts):
     index1, index2, docs = get_doc_index(contenido_izquierda, contenido_derecha)
     v_sim = dl.v_similarity(vcts[index1], vcts[index2])
 
-    if (v_sim >= 0.5):
+    if (v_sim >= 0.7):
         messagebox.showwarning(f"Warning", f"Plagarism Detecteddd!!!\n{"{:.2f}".format(v_sim * 100)}% Precision")
         conmon_ngrams = pc.find_similar_ngrams(docs[index1], docs[index2])
         v.cargar_archivo(texto_izquierda, conmon_ngrams, docs[index1])
