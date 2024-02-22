@@ -6,26 +6,42 @@ import threading
 
 
 def compare_docs(vcts):
+    """
+    Compara la similitud entre documentos basados en vectores de embedding y muestra advertencias si se detecta plagio.
+
+    Parámetros:
+    vcts (list): Una lista de vectores de embedding de documentos.
+
+    Retorna:
+    None
+    """
     contenido_izquierda = texto_izquierda.get("1.0", tk.END)
     contenido_derecha = texto_derecha.get("1.0", tk.END)
 
     if (len(contenido_derecha) == 1 or len(contenido_izquierda) == 1):
-        messagebox.showwarning("Warning", "Nothig to compare!")
+        messagebox.showwarning("Warning", "Nothing to compare!")
     index1, index2, docs = get_doc_index(contenido_izquierda, contenido_derecha)
     v_sim = dl.v_similarity(vcts[index1], vcts[index2])
 
     if (v_sim >= 0.7):
-        messagebox.showwarning(f"Warning", f"Plagarism Detecteddd!!!\n{"{:.2f}".format(v_sim * 100)}% Precision")
+        messagebox.showwarning(f"Warning", f"Plagiarism Detected!!!\n{"{:.2f}".format(v_sim * 100)}% Precision")
         conmon_ngrams = pc.find_similar_ngrams(docs[index1], docs[index2])
         v.cargar_archivo(texto_izquierda, conmon_ngrams, docs[index1])
         v.cargar_archivo(texto_derecha, conmon_ngrams, docs[index2])
-
-
     else:
-        messagebox.showwarning("Warning", f"Nothig detected!\n{"{:.2f}".format(v_sim * 100)}% Precision")
-
+        messagebox.showwarning("Warning", f"No plagiarism detected!\n{"{:.2f}".format(v_sim * 100)}% Precision")
 
 def get_doc_index(doc1, doc2):
+    """
+    Obtiene los índices de documentos en la lista de documentos cargados basándose en su contenido.
+
+    Parámetros:
+    doc1 (str): El contenido del primer documento.
+    doc2 (str): El contenido del segundo documento.
+
+    Retorna:
+    tuple: Una tupla que contiene los índices de los documentos y la lista de documentos cargados.
+    """
     doc1 = doc1.lower().split()
     doc2 = doc2.lower().split()
     docs = dl.load_docs(False)
@@ -39,10 +55,16 @@ def get_doc_index(doc1, doc2):
 
     return index1, index2, docs
 
-
 def process_docs_async():
+    """
+    Procesa los documentos de manera asíncrona y guarda los vectores de embedding en una variable global.
+
+    Retorna:
+    None
+    """
     global vcts
     vcts = pc.process_docs()
+
 
 
 # Iniciar el proceso en un hilo
